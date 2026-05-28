@@ -10,13 +10,25 @@
 - Subscription-gated strategy workflow page built
 - Strategy inputs persisted to Supabase as drafts
 - AI-driven workflow with Anthropic prompt and strict JSON schema built
+- AJV validation + retry for Anthropic JSON parsing
+- Anthropic API migrated from legacy `/v1/complete` to `/v1/messages` (claude-haiku-4-5-20251001)
+- AI generation endpoint auth-gated (requires valid session + active subscription)
+- Stripe webhook user lookup fixed (metadata user ID → subscription lookup → email fallback)
+- Supabase `.insert()` fixed to return inserted row via `.select()`
+- Draft naming — user-defined name input on strategy workflow
+- Draft detail page made fully editable (step-by-step form with save, AI generate, export)
+- Delete draft — DELETE API handler + confirm button on drafts list
+- Strategy export to formatted `.txt` download
+- Branded design system — CSS tokens, sidebar layout, component classes applied across all pages
+- `.env.example` documented with all required keys
+- Supabase JS client upgraded to v2.106.2 to support new `sb_publishable_` key format
+- Git repository initialised and pushed to GitHub (hareeji/nimblscale-strategy-builder)
 
 ## What is incomplete
 
-- AJV validation + retry for Anthropic JSON parsing
 - Middleware guard for subscriber-only routes
-- Draft editor for updating saved strategies
 - AI completion and parse-failure logging
-- Stripe customer creation on checkout
-- Vercel deployment config and environment docs
+- Vercel deployment config
 - Basic tests for API routes and UI flows
+- Supabase schema applied to live project (run db/supabase_schema.sql in SQL Editor)
+- Stripe keys and Anthropic API key still needed in .env.local
