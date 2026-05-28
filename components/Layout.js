@@ -18,10 +18,10 @@ export default function Layout({ children, title }) {
     supabase.auth.getSession().then(({ data }) => {
       setUserEmail(data?.session?.user?.email ?? null)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserEmail(session?.user?.email ?? null)
     })
-    return () => subscription.unsubscribe()
+    return () => data?.subscription?.unsubscribe()
   }, [])
 
   return (
