@@ -30,7 +30,9 @@
 - `db/supabase_schema.sql` updated with `ai_logs` table definition
 - `vercel.json` created — sets 30 s timeout on AI generation function, 10 s on Stripe webhook
 
+- Jest test suite added (jest + @testing-library/react + jest-dom); 24 tests across 5 suites covering strategy CRUD, subscription status, and auth UI
+- `npm test` script added to package.json
+
 ## What is incomplete
-- Basic tests for API routes and UI flows
 - Supabase schema applied to live project (run db/supabase_schema.sql in SQL Editor — includes new ai_logs table)
 - Stripe keys and Anthropic API key still needed in .env.local
