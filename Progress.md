@@ -33,6 +33,8 @@
 - Jest test suite added (jest + @testing-library/react + jest-dom); 24 tests across 5 suites covering strategy CRUD, subscription status, and auth UI
 - `npm test` script added to package.json
 
+- `db/supabase_schema.sql` hardened: added `updated_at` + auto-update trigger to `strategies`, unique constraint on `subscriptions.stripe_subscription_id`, and RLS policies for all four tables
+
 ## What is incomplete
-- Supabase schema applied to live project (run db/supabase_schema.sql in SQL Editor — includes new ai_logs table)
-- Stripe keys and Anthropic API key still needed in .env.local
+- Supabase schema applied to live project (run db/supabase_schema.sql in SQL Editor — this is a full replacement, safe to re-run)
+- Stripe keys and Anthropic API key still needed in .env.local and Vercel env vars
