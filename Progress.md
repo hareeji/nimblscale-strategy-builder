@@ -23,12 +23,14 @@
 - `.env.example` documented with all required keys
 - Supabase JS client upgraded to v2.106.2 to support new `sb_publishable_` key format
 - Git repository initialised and pushed to GitHub (hareeji/nimblscale-strategy-builder)
+- `@supabase/ssr` installed; `lib/supabaseClient.js` switched to `createBrowserClient` for cookie-based session storage (required for server-side middleware to read auth state)
+- Middleware guard — `middleware.js` created at root; protects `/strategy`, `/drafts`, `/drafts/:path*`, `/account`; unauthenticated visitors redirected to `/auth?next=<path>`
+- Auth page updated to redirect back to the original destination after sign-in (respects `?next=` param)
+- AI logging — every `/api/anthropic/generate` call inserts a row into `ai_logs` (user, inputs, completion, parsed output, validity, AJV errors); fire-and-forget, never blocks the response
+- `db/supabase_schema.sql` updated with `ai_logs` table definition
+- `vercel.json` created — sets 30 s timeout on AI generation function, 10 s on Stripe webhook
 
 ## What is incomplete
-
-- Middleware guard for subscriber-only routes
-- AI completion and parse-failure logging
-- Vercel deployment config
 - Basic tests for API routes and UI flows
-- Supabase schema applied to live project (run db/supabase_schema.sql in SQL Editor)
+- Supabase schema applied to live project (run db/supabase_schema.sql in SQL Editor — includes new ai_logs table)
 - Stripe keys and Anthropic API key still needed in .env.local

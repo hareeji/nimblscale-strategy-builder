@@ -25,7 +25,7 @@ export default function AuthPage() {
     e.preventDefault(); setMessage(''); setLoading(true)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setMessage(error.message); setIsError(true) }
-    else { setMessage('Signed in successfully.'); setIsError(false); router.push('/strategy') }
+    else { setMessage('Signed in successfully.'); setIsError(false); router.push(router.query.next || '/strategy') }
     setLoading(false)
   }
 

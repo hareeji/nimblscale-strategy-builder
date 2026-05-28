@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "pages/api/anthropic/generate.js": { "maxDuration": 30 },
+    "pages/api/stripe/webhook.js": { "maxDuration": 10 }
+  }
+}

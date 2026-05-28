@@ -141,6 +141,16 @@ export default async function handler(req, res) {
 
     const ajvErrors = valid ? null : validate.errors || null
 
+    supabaseAdmin.from('ai_logs').insert({
+      user_id: userData.user.id,
+      strategy_name: name || null,
+      inputs,
+      completion: text,
+      parsed: parsed || null,
+      valid: Boolean(valid),
+      parse_error: valid ? null : JSON.stringify(ajvErrors)
+    }).then(({ error }) => { if (error) console.error('ai_logs insert error', error) })
+
     return res.status(200).json({ completion: text, parsed, valid: Boolean(valid), ajvErrors })
   } catch (err) {
     return res.status(500).json({ error: String(err) })
