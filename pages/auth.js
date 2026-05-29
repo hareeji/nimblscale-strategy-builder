@@ -53,7 +53,9 @@ export default function AuthPage() {
     e.preventDefault()
     if (!email) { setMessage('Enter your email above first.'); setIsError(true); return }
     setLoading(true); setMessage('')
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`
+    })
     if (error) { setMessage(error.message); setIsError(true) }
     else { setMessage('Password reset email sent — check your inbox.'); setIsError(false); setResetSent(true) }
     setLoading(false)
