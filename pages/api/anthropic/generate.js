@@ -33,12 +33,14 @@ export default async function handler(req, res) {
   const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token)
   if (userError) return res.status(401).json({ error: userError.message })
 
-  const { data: subs } = await supabaseAdmin
+  const { data: subs, error: subsErr } = await supabaseAdmin
     .from('subscriptions')
     .select('status')
     .eq('user_id', userData.user.id)
     .order('updated_at', { ascending: false })
     .limit(1)
+
+  if (subsErr) return res.status(500).json({ error: subsErr.message })
 
   if (subs?.[0]?.status !== 'active') {
     return res.status(403).json({ error: 'Active subscription required' })

@@ -67,19 +67,47 @@
 
 ---
 
+## End-to-end verification results
+
+Tested against the live Supabase project with the dev server running. Supabase credentials are set; Stripe and Anthropic keys are not yet filled in.
+
+| Flow | Result | Notes |
+|---|---|---|
+| Dev server, page rendering | ✅ | All pages return 200 |
+| Middleware auth redirects | ✅ | `/strategy`, `/drafts`, `/account` → `307 /auth?next=<path>` |
+| API 401 on missing token | ✅ | All routes return `{"error":"Missing access token"}` |
+| Sign-in (Supabase JWT) | ✅ | Returns valid ES256 token |
+| `/api/auth/me` | ✅ | Returns correct user |
+| `/api/subscriptions/status` | ❌ | 500 — schema not applied (table missing) |
+| `/api/strategies/list` | ❌ | 500 — schema not applied (table missing) |
+| `/api/strategies/save` | ❌ | 500 — schema not applied (table missing) |
+| Stripe checkout | ❌ | 500 — `STRIPE_SECRET_KEY` is empty |
+| AI generation | ⚠️ | 403 "Active subscription required" — DB error silently swallowed in subscription check |
+
+**Known code issue found during verification:** `/api/anthropic/generate` does not check `subsErr` after the subscription query. When the `subscriptions` table is missing, the DB error is silently dropped and the route returns a misleading 403 instead of a 500. Needs a one-line fix before launch.
+
+---
+
 ## What is incomplete
+
+### Code fix applied
+
+- **`/api/anthropic/generate` — subscription query error now surfaced correctly.** Added `subsErr` check; DB failures now return 500 instead of a misleading 403 "Active subscription required".
 
 ### Manual steps — requires your credentials / dashboard access
 
 1. **Run the database schema**
-   Open `db/supabase_schema.sql` in the Supabase SQL Editor and run it. Safe to re-run (uses `create table if not exists` and `create or replace function`).
+   Open `db/supabase_schema.sql` in the Supabase SQL Editor and run it. Safe to re-run (uses `create table if not exists` and `create or replace function`). This unblocks all strategy, draft, and subscription routes.
 
 2. **Fill in environment variables**
    Copy `.env.example` to `.env.local` and populate all values. Add the same keys to Vercel environment variables before deploying.
-   Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PRICE_ID`, `NEXT_PUBLIC_APP_URL`
+   Still missing: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PRICE_ID`, `ANTHROPIC_API_KEY`
 
 3. **Activate Stripe Customer Portal**
    In the Stripe Dashboard: Billing → Customer portal → Activate. Required before the "Manage subscription" button on the account page will work.
 
 4. **Register Stripe webhook endpoint**
    In the Stripe Dashboard: Developers → Webhooks → Add endpoint. Point it at `<your-app-url>/api/stripe/webhook`. Subscribe to: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `invoice.payment_succeeded`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
+
+5. **Enable "Auto-confirm users" in Supabase Auth settings for local testing**
+   Prevents hitting the email send rate limit when creating test accounts during development.
