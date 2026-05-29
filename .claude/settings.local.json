@@ -30,7 +30,8 @@
       "Bash(echo \"exit: $?\")",
       "Bash(node *)",
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000\" -TimeoutSec 10 -UseBasicParsing | Select-Object StatusCode, StatusDescription)",
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }
