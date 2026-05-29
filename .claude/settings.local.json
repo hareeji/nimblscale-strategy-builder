@@ -6,7 +6,31 @@
       "PowerShell(Get-Command *)",
       "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe\" --version 2>&1)",
       "PowerShell(git *)",
-      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\cmd\\\\git.exe\" --version 2>&1)"
+      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\cmd\\\\git.exe\" --version 2>&1)",
+      "Bash(grep -Hm1 ^description: 'C:\\\\Users\\\\hsimo\\\\OneDrive - NimblShift Consulting Inc\\\\Documents\\\\Claude\\\\Projects\\\\NimblScale Strategy Builder/.claude/skills/*/SKILL.md')",
+      "Bash(npm run *)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(chromium-cli screenshot *)",
+      "Bash(npx playwright *)",
+      "Bash(node \"C:/Users/hsimo/AppData/Local/Temp/screenshot.mjs\")",
+      "Bash(node -e \"require\\('playwright'\\)\")",
+      "Bash(node -e \"require\\('@playwright/test'\\)\")",
+      "Bash(npm list *)",
+      "Bash(npx --yes playwright@1.60.0 --version)",
+      "Bash(npm install *)",
+      "Bash(node screenshot.mjs)",
+      "Bash(npm test *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(supabase --version)",
+      "Bash(npx supabase *)",
+      "PowerShell(Get-ChildItem *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(node *)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000\" -TimeoutSec 10 -UseBasicParsing | Select-Object StatusCode, StatusDescription)",
+      "PowerShell(Get-Process *)"
     ]
   }
 }
