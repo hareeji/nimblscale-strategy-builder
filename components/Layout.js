@@ -24,6 +24,11 @@ export default function Layout({ children, title }) {
     return () => data?.subscription?.unsubscribe()
   }, [])
 
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -52,7 +57,15 @@ export default function Layout({ children, title }) {
         <header className="topbar">
           <span className="topbar-title">{title || 'NimblScale'}</span>
           {userEmail ? (
-            <span className="topbar-user">{userEmail}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <span className="topbar-user">{userEmail}</span>
+              <button
+                onClick={handleSignOut}
+                style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: 'var(--ns-charcoal)', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Sign out
+              </button>
+            </div>
           ) : (
             <Link href="/auth" style={{ fontSize: 12, color: 'var(--ns-blue)', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
           )}

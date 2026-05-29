@@ -13,6 +13,7 @@ export default function Account() {
   const [loading, setLoading]         = useState(true)
   const [user, setUser]               = useState(null)
   const [subscription, setSubscription] = useState(null)
+  const [portalLoading, setPortalLoading] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -29,6 +30,20 @@ export default function Account() {
     })()
     return () => { mounted = false }
   }, [])
+
+  async function handleManageSubscription() {
+    setPortalLoading(true)
+    const { data } = await supabase.auth.getSession()
+    const token = data?.session?.access_token
+    if (!token) { setPortalLoading(false); return }
+    const res = await fetch('/api/stripe/create-portal-session', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const payload = await res.json()
+    if (payload.url) window.location.href = payload.url
+    setPortalLoading(false)
+  }
 
   if (loading) return <div style={{ color: 'var(--ns-charcoal)' }}>Loading…</div>
 
@@ -72,6 +87,11 @@ export default function Account() {
             <div style={{ display: 'flex', gap: 10 }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ns-charcoal)', width: 100, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Updated</span>
               <span style={{ fontSize: 13, color: 'var(--ns-dark)' }}>{new Date(subscription.updated_at).toLocaleString()}</span>
+            </div>
+            <div style={{ marginTop: 6 }}>
+              <button className="btn-outline" onClick={handleManageSubscription} disabled={portalLoading}>
+                {portalLoading ? 'Redirecting…' : 'Manage subscription'}
+              </button>
             </div>
           </div>
         ) : (

@@ -3,14 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabaseClient'
 import { exportStrategy } from '../../lib/exportStrategy'
-
-const steps = [
-  { id: 1, title: 'Business Context',      key: 'businessContext',      placeholder: 'Describe the client, market, and goals.' },
-  { id: 2, title: 'Competitive Advantage', key: 'competitiveAdvantage', placeholder: 'What differentiates the business from competitors?' },
-  { id: 3, title: 'Target Audience',       key: 'targetAudience',       placeholder: 'Who are the ideal customers and segments?' },
-  { id: 4, title: 'Strategic Initiatives', key: 'initiatives',          placeholder: 'List the key growth initiatives or campaigns.' },
-  { id: 5, title: 'Metrics & Outcomes',    key: 'metrics',              placeholder: 'Define success metrics and timeline.' }
-]
+import { steps, emptyInputs } from '../../lib/steps'
 
 export default function DraftDetail() {
   const router = useRouter()
@@ -20,11 +13,12 @@ export default function DraftDetail() {
   const [error, setError]           = useState(null)
   const [currentStep, setCurrentStep] = useState(1)
   const [draftName, setDraftName]   = useState('')
-  const [values, setValues]         = useState({ businessContext: '', competitiveAdvantage: '', targetAudience: '', initiatives: '', metrics: '' })
+  const [values, setValues]         = useState(emptyInputs)
   const [saving, setSaving]         = useState(false)
   const [message, setMessage]       = useState('')
   const [generating, setGenerating] = useState(false)
   const [aiOutput, setAiOutput]     = useState('')
+  const [aiParsed, setAiParsed]     = useState(null)
 
   const currentStepConfig = useMemo(() => steps.find(s => s.id === currentStep), [currentStep])
 
@@ -86,10 +80,37 @@ export default function DraftDetail() {
         body: JSON.stringify({ name: draftName || strategy?.name, inputs: values })
       })
       const payload = await res.json()
-      if (res.ok) setAiOutput(payload.completion)
+      if (res.ok) { setAiOutput(payload.completion); setAiParsed(payload.parsed ?? null) }
       else setError(payload.error || 'Unable to generate summary')
     } catch (e) { setError(String(e)) }
     finally { setGenerating(false) }
+  }
+
+  function populateFromAI() {
+    if (!aiParsed) return
+    const mapping = {}
+    ;['businessContext','competitiveAdvantage','targetAudience','initiatives','metrics'].forEach(k => {
+      if (aiParsed[k]) mapping[k] = aiParsed[k]
+    })
+    if (!Object.keys(mapping).length) { setMessage('No mappable fields in AI output.'); return }
+    setValues(prev => ({ ...prev, ...mapping }))
+    setMessage('Fields populated from AI summary.')
+  }
+
+  async function saveAiSummaryToDraft() {
+    if (!aiOutput) return
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData?.session?.access_token
+    if (!token) return setError('Sign in required')
+    const inputs = { ...values, ai_summary: aiOutput }
+    const res = await fetch(`/api/strategies/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ inputs })
+    })
+    const payload = await res.json()
+    if (res.ok) setMessage('AI summary saved to draft.')
+    else setError(payload.error || 'Unable to save AI summary')
   }
 
   if (loading) return <div style={{ color: 'var(--ns-charcoal)' }}>Loading draft…</div>
@@ -148,6 +169,10 @@ export default function DraftDetail() {
         <div className="ai-output-panel">
           <h4>AI-generated summary</h4>
           <pre>{aiOutput}</pre>
+          <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+            {aiParsed && <button className="btn-outline" onClick={populateFromAI}>Populate fields from AI</button>}
+            <button className="btn-outline" onClick={saveAiSummaryToDraft}>Save AI summary to draft</button>
+          </div>
         </div>
       )}
     </div>

@@ -1,40 +1,85 @@
-## What has been built so far
+# NimblScale Strategy Builder — Progress
 
-- Next.js app scaffold created for `NimblScale Strategy Builder`
-- Supabase integration with client and server helpers
-- Auth UI implemented for sign-in/sign-up
-- Supabase DB schema defined for strategies, sessions, subscriptions
-- Pricing page and Stripe checkout flow added
-- Stripe webhook route wired to sync subscription state to Supabase
-- Protected subscriber status UI created
-- Subscription-gated strategy workflow page built
-- Strategy inputs persisted to Supabase as drafts
-- AI-driven workflow with Anthropic prompt and strict JSON schema built
-- AJV validation + retry for Anthropic JSON parsing
-- Anthropic API migrated from legacy `/v1/complete` to `/v1/messages` (claude-haiku-4-5-20251001)
-- AI generation endpoint auth-gated (requires valid session + active subscription)
-- Stripe webhook user lookup fixed (metadata user ID → subscription lookup → email fallback)
-- Supabase `.insert()` fixed to return inserted row via `.select()`
-- Draft naming — user-defined name input on strategy workflow
-- Draft detail page made fully editable (step-by-step form with save, AI generate, export)
-- Delete draft — DELETE API handler + confirm button on drafts list
-- Strategy export to formatted `.txt` download
-- Branded design system — CSS tokens, sidebar layout, component classes applied across all pages
-- `.env.example` documented with all required keys
-- Supabase JS client upgraded to v2.106.2 to support new `sb_publishable_` key format
-- Git repository initialised and pushed to GitHub (hareeji/nimblscale-strategy-builder)
-- `@supabase/ssr` installed; `lib/supabaseClient.js` switched to `createBrowserClient` for cookie-based session storage (required for server-side middleware to read auth state)
-- Middleware guard — `middleware.js` created at root; protects `/strategy`, `/drafts`, `/drafts/:path*`, `/account`; unauthenticated visitors redirected to `/auth?next=<path>`
-- Auth page updated to redirect back to the original destination after sign-in (respects `?next=` param)
-- AI logging — every `/api/anthropic/generate` call inserts a row into `ai_logs` (user, inputs, completion, parsed output, validity, AJV errors); fire-and-forget, never blocks the response
-- `db/supabase_schema.sql` updated with `ai_logs` table definition
-- `vercel.json` created — sets 30 s timeout on AI generation function, 10 s on Stripe webhook
+## What has been built
 
-- Jest test suite added (jest + @testing-library/react + jest-dom); 24 tests across 5 suites covering strategy CRUD, subscription status, and auth UI
-- `npm test` script added to package.json
+### Authentication
+- Sign-in, sign-up, and sign-out flows via Supabase Auth
+- Forgot password and email-based recovery (redirects back to `/auth`)
+- Middleware guard (`proxy.js`) protects `/strategy`, `/drafts`, `/account` — unauthenticated visitors redirected to `/auth?next=<path>`
+- Auth page respects `?next=` param and redirects back after sign-in
+- Sign-out button in the topbar, available on every page
 
-- `db/supabase_schema.sql` hardened: added `updated_at` + auto-update trigger to `strategies`, unique constraint on `subscriptions.stripe_subscription_id`, and RLS policies for all four tables
+### Strategy Workflow
+- 5-step strategy builder: Business Context, Competitive Advantage, Target Audience, Strategic Initiatives, Metrics & Outcomes
+- Draft naming with user-defined title
+- Step-by-step navigation (Previous / Next tabs)
+- Save draft to Supabase at any point
+- AI summary generation via Anthropic (`claude-haiku-4-5-20251001`, `/v1/messages`)
+  - Strict JSON schema enforced with AJV validation
+  - Automatic retry if first response fails schema validation
+  - "Populate fields from AI" — maps AI output back into form fields
+  - "Save AI summary to draft" — persists AI output alongside inputs
+- Export strategy to formatted `.txt` download
+
+### Drafts
+- Drafts list page with last-updated timestamps
+- Open any draft for full editing (step tabs, save, AI generate, export, populate from AI)
+- Delete draft with confirmation (irreversible)
+
+### Subscription & Billing
+- Pricing page with Stripe Checkout (Pro Plan, $29/month)
+- Stripe webhook syncs subscription state to Supabase (`subscriptions` table) on: checkout completed, subscription updated/deleted, payment succeeded/failed
+- Webhook user resolution: metadata user ID → customer ID lookup → email fallback
+- Subscription-gated access: `/strategy` and `/drafts` redirect to `/pricing` if no active subscription
+- Account page shows subscription status badge, price ID, and last updated
+- Stripe Customer Portal: "Manage subscription" button on account page (cancel, update payment method)
+- Home page shows "Subscription activated" banner after successful checkout (`?subscribed=1`)
+
+### API Routes
+| Route | Methods | Description |
+|---|---|---|
+| `/api/auth/me` | GET | Returns current user |
+| `/api/subscriptions/status` | GET | Returns user + latest subscription |
+| `/api/strategies/save` | POST | Create new draft |
+| `/api/strategies/list` | GET | List all drafts for user |
+| `/api/strategies/[id]` | GET / PATCH / DELETE | Read, update, or delete a draft |
+| `/api/anthropic/generate` | POST | AI strategy generation (subscription-gated) |
+| `/api/stripe/create-checkout-session` | POST | Create Stripe Checkout session |
+| `/api/stripe/create-portal-session` | POST | Create Stripe Customer Portal session |
+| `/api/stripe/webhook` | POST | Receive and process Stripe events |
+
+### Database
+- `strategies` — user drafts (JSONB inputs, name, timestamps, auto-update trigger)
+- `subscriptions` — Stripe subscription state linked to users
+- `ai_logs` — every AI generation call logged (inputs, completion, parsed output, AJV validity)
+- `user_sessions` — reserved for future use
+- Row Level Security enabled on all four tables; service-role key bypasses for API routes
+- Unique constraint on `subscriptions.stripe_subscription_id`
+
+### Infrastructure & Quality
+- Branded design system: CSS tokens, sidebar layout, step tabs, panel/card/button classes
+- `lib/steps.js` — shared step definitions imported by both strategy pages (no duplication)
+- `lib/supabaseClient.js` — `createBrowserClient` from `@supabase/ssr` for cookie-based sessions
+- `lib/supabaseServer.js` — service-role admin client with fully-chainable noop fallback when env vars are missing
+- `vercel.json` — 30 s timeout on AI generation, 10 s on Stripe webhook
+- `.env.example` documents all required environment variables
+- Jest test suite: 29 tests across 6 suites (strategy CRUD, subscriptions, auth UI, Stripe portal)
+
+---
 
 ## What is incomplete
-- Supabase schema applied to live project (run db/supabase_schema.sql in SQL Editor — this is a full replacement, safe to re-run)
-- Stripe keys and Anthropic API key still needed in .env.local and Vercel env vars
+
+### Manual steps — requires your credentials / dashboard access
+
+1. **Run the database schema**
+   Open `db/supabase_schema.sql` in the Supabase SQL Editor and run it. Safe to re-run (uses `create table if not exists` and `create or replace function`).
+
+2. **Fill in environment variables**
+   Copy `.env.example` to `.env.local` and populate all values. Add the same keys to Vercel environment variables before deploying.
+   Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PRICE_ID`, `NEXT_PUBLIC_APP_URL`
+
+3. **Activate Stripe Customer Portal**
+   In the Stripe Dashboard: Billing → Customer portal → Activate. Required before the "Manage subscription" button on the account page will work.
+
+4. **Register Stripe webhook endpoint**
+   In the Stripe Dashboard: Developers → Webhooks → Add endpoint. Point it at `<your-app-url>/api/stripe/webhook`. Subscribe to: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `invoice.payment_succeeded`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.

@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: customerEmail,
       metadata: { price_id: priceId, supabase_user_id: userId || null },
-      success_url: successUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/?subscribed=1`,
       cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/pricing`
     })
 

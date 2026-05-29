@@ -2,21 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
 import { exportStrategy } from '../lib/exportStrategy'
-
-const steps = [
-  { id: 1, title: 'Business Context',    key: 'businessContext',      placeholder: 'Describe the client, market, and goals.' },
-  { id: 2, title: 'Competitive Advantage', key: 'competitiveAdvantage', placeholder: 'What differentiates the business from competitors?' },
-  { id: 3, title: 'Target Audience',     key: 'targetAudience',       placeholder: 'Who are the ideal customers and segments?' },
-  { id: 4, title: 'Strategic Initiatives', key: 'initiatives',         placeholder: 'List the key growth initiatives or campaigns.' },
-  { id: 5, title: 'Metrics & Outcomes',  key: 'metrics',              placeholder: 'Define success metrics and timeline.' }
-]
+import { steps, emptyInputs } from '../lib/steps'
 
 export default function Strategy() {
   const [loading, setLoading]           = useState(true)
   const [user, setUser]                 = useState(null)
   const [subscription, setSubscription] = useState(null)
   const [currentStep, setCurrentStep]   = useState(1)
-  const [values, setValues]             = useState({ businessContext: '', competitiveAdvantage: '', targetAudience: '', initiatives: '', metrics: '' })
+  const [values, setValues]             = useState(emptyInputs)
   const [draftName, setDraftName]       = useState('')
   const [strategyId, setStrategyId]     = useState(null)
   const [aiOutput, setAiOutput]         = useState('')
